@@ -3,7 +3,7 @@ C utils
 
 ## Vectors
 
-### struct vec
+### ```struct vec```
 
 #### ```void* st```
 
