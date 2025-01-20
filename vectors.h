@@ -2,6 +2,7 @@
 #include<stdio.h>
 #include<string.h>
 #include<stdbool.h>
+#include"./memory.h"
 
 #define VECTOR_STEP 100
 
@@ -41,4 +42,16 @@ bool vector_is_empty(struct vec* vec){
 
 void vector_free(struct vec* vec){
   free(vec->st);
+}
+void vector_sort_selection(struct vec* vec, bool (*cond_func)(void*, void*)){
+  //bubble sort
+  size_t curr = 0;
+  for(size_t i = 0; i < vec->count - 1; i ++){
+    size_t max_ind = i;
+    for(size_t j = i + 1; j < vec->count; j ++){
+      if(cond_func(vec->st + vec->sizeoft * j, vec->st + vec->sizeoft * i)){
+        memswp(vec->st + vec->sizeoft * j, vec->st + vec->sizeoft * i, vec->sizeoft);
+      }
+    }
+  }
 }
