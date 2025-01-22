@@ -6,6 +6,7 @@
 typedef struct hashmap_node{
   char* key;
   void* value;
+  struct hashmap_node *next;
 } hashmap_node_t;
 
 typedef struct hashmap{
@@ -31,23 +32,48 @@ void hashmap_set(hashmap_t *hashmap, char *key, void *val) {
 
   hashmap_node_t *new_node = (hashmap_node_t *)malloc(sizeof(hashmap_node_t));
 
+  unsigned long h = hash(key);
+
   new_node->key = strdup(key);
   new_node->value = malloc(hashmap->size);
   memcpy(new_node->value, val, hashmap->size);
 
-  hashmap->nodes[hash(key)] = new_node;
+  hashmap_node_t *last_node = hashmap->nodes[h];
+
+  if(!last_node) {
+    hashmap->nodes[h] = new_node;
+  }else {
+
+    while(last_node->next) {
+
+      if(!strcmp(last_node->key, key)){
+        break;
+      }
+
+      last_node = last_node->next;
+
+    }
+
+    last_node->next = new_node;
+  }
+
 }
 
 hashmap_node_t* hashmap_get(hashmap_t *hashmap, char* key) {
-  return hashmap->nodes[hash(key)];
+  hashmap_node_t *node = hashmap->nodes[hash(key)];
+  while(strcmp(node->key, key)){
+    node = node->next;
+  }
+  return node;
 }
 
 void hashmap_dump_ints(hashmap_t *hashmap) {
   printf("{\n");
   for(int i = 0; i < HASHMAP_SIZE; i ++){
     hashmap_node_t *node = hashmap->nodes[i];
-    if(node){
+    while(node){
       printf("  %10s: %d\n", node->key, *(int*)node->value);
+      node = node->next;
     }
   }
   printf("}\n");
