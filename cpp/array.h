@@ -4,6 +4,7 @@
 #include<stdexcept>
 
 namespace clib {
+
   template<typename T>
   class List {
 
@@ -23,6 +24,7 @@ namespace clib {
       const T& operator[](std::size_t index) const;
 
       void extend(const List<T>& list);
+      void clear();
       bool contains(const T& item) const;
       std::size_t size() const;
 
@@ -49,17 +51,22 @@ namespace clib {
       T* construct_data(std::size_t size);
   };
 
+  //-------DEFINITIONS------
+
+  template<typename T>
+  void List<T>::clear() {
+    clear_data();
+  }
+
   template<typename T>
   void List<T>::delete_data() {
-    ::operator delete(data, std::align_val_t(alignof(T)));
+    ::operator delete(data);
     data = nullptr;
   }
+
   template<typename T>
   T* List<T>::construct_data(std::size_t size) {
-    T* temp = static_cast<T*>(
-        ::operator new(sizeof(T) * size, std::align_val_t(alignof(T)))
-    );
-    return temp;
+    return static_cast<T*>(::operator new(sizeof(T) * size));
   }
   template<typename T>
   void List<T>::clear_data() {
@@ -75,6 +82,7 @@ namespace clib {
     if(space <= cap) return;
 
     T* temp = construct_data(space);
+    std::size_t tempCount = count;
 
     for(std::size_t i = 0; i < count; i ++) {
       new (temp + i) T(std::move_if_noexcept(data[i]));
@@ -84,6 +92,7 @@ namespace clib {
     delete_data();
 
     data = temp;
+    count = tempCount;
     cap = space;
   }
 

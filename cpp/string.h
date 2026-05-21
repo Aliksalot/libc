@@ -4,6 +4,8 @@
 #include<cstddef>
 #include<stdexcept>
 #include<cstring>
+#include<ostream>
+#include<istream>
 
 namespace clib{
 
@@ -13,14 +15,25 @@ namespace clib{
     String(const char* s);
     String(const char* s, std::size_t len);
 
-    char operator[](std::size_t index);
+    const char& operator[](std::size_t index) const;
+    char& operator[](std::size_t index);
     String& operator+=(const String& s);
     String& operator+=(char c);
     String& operator+=(const char* s);
+    String& operator=(const char* s);
+
+    void clear();
+    std::size_t size() const;
     
-  private:
     List<char> l;
   };
+
+  inline void String::clear() {
+    l.clear();
+  }
+  inline std::size_t String::size() const {
+    return l.size();
+  }
 
   inline String::String() { };
   inline String::String(const char* s): String(s, std::strlen(s)) { };
@@ -28,7 +41,16 @@ namespace clib{
     l = List<char>(s, len);
   }
 
-  inline char String::operator[](std::size_t index) {
+  inline String& String::operator=(const char* s) {
+    l = List<char>(s, std::strlen(s));
+    return *this;
+  }
+
+  inline char& String::operator[](std::size_t index) {
+    return l[index];
+  }
+
+  inline const char& String::operator[](std::size_t index) const{
     return l[index];
   }
   inline String& String::operator+=(const String& s) {
@@ -42,5 +64,26 @@ namespace clib{
   inline String& String::operator+=(const char* s) {
     return *this += String(s);
   }
-  
+  inline String operator+(const String& a, const String& b) {
+    String result = a;
+    return result += b;
+  }
+  inline std::ostream& operator<<(std::ostream& stream, const String& s) {
+    for(std::size_t i = 0; i < s.size(); i ++) {
+      stream << s[i];
+    }
+    return stream;
+  }
+  inline std::istream& operator>>(std::istream& stream, String& s) {
+    s.clear();
+
+    char c;
+    while(stream.get(c)) {
+      if(c == ' ' || c == '\n' || c == '\t') break;
+
+      s += c;
+    }
+
+    return stream;
+  }
 }
