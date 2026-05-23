@@ -21,10 +21,13 @@ namespace clib{
     String& operator+=(char c);
     String& operator+=(const char* s);
     String& operator=(const char* s);
+    bool operator==(const String& s) const;
+    bool operator==(const char* s) const;
 
     void clear();
     std::size_t size() const;
-    
+
+  private:
     List<char> l;
   };
 
@@ -68,6 +71,17 @@ namespace clib{
     String result = a;
     return result += b;
   }
+  inline bool String::operator==(const String& s) const {
+    if(size() != s.size()) return false;
+
+    for(std::size_t i = 0; i < size(); i ++) {
+      if(l[i] != s[i]) return false;
+    }
+    return true;
+  }
+  inline bool String::operator==(const char* s) const {
+    return *this == String(s);
+  }
   inline std::ostream& operator<<(std::ostream& stream, const String& s) {
     for(std::size_t i = 0; i < s.size(); i ++) {
       stream << s[i];
@@ -87,3 +101,4 @@ namespace clib{
     return stream;
   }
 }
+

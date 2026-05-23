@@ -25,6 +25,7 @@ namespace clib {
 
       void extend(const List<T>& list);
       void clear();
+      List& remove(std::size_t st, std::size_t items = 1);
       bool contains(const T& item) const;
       std::size_t size() const;
 
@@ -41,7 +42,7 @@ namespace clib {
 
       //TODO abstract memory management
       /**Destroys all objects in data and sets count to 0. Doesn't delete data*/
-      void clear_data();
+      void clear_data(std::size_t st = 0);
       /**Calls delete on data. Does NOT destruct T objects, only frees memory*/
       void delete_data();
       /**
@@ -69,11 +70,13 @@ namespace clib {
     return static_cast<T*>(::operator new(sizeof(T) * size));
   }
   template<typename T>
-  void List<T>::clear_data() {
-    for(std::size_t i = 0; i < count; i ++) {
+  void List<T>::clear_data(std::size_t st) {
+    if(st >= count) return;
+
+    for(std::size_t i = st; i < count; i ++) {
       data[i].~T();
     }
-    count = 0;
+    count = st;
   }
 
   template<typename T>
@@ -168,6 +171,19 @@ namespace clib {
     l.data = nullptr;
     l.cap = 0;
     l.count = 0;
+  }
+
+  template<typename T>
+  List<T>& List<T>::remove(std::size_t st, std::size_t items) {
+    if(st >= count || items > count - st) return *this;
+    
+    for(std::size_t i = 0; i < count - st - items; i ++) {
+      T temp = std::move(data[st + i]);
+      data[st + i] = std::move(data[st + items + i]);
+      data[st + items + i] = std::move(temp);
+    }
+    clear_data(count - items);
+    return *this;
   }
 
   template<typename T>
