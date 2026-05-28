@@ -13,7 +13,7 @@ namespace clib {
       List(const T* arr, std::size_t len);
       ~List();
 
-      void add(const T& item);
+      List& add(const T& item);
 
       List(const List& l);
       List& operator=(const List& l);
@@ -26,8 +26,15 @@ namespace clib {
       void extend(const List<T>& list);
       void clear();
       List& remove(std::size_t st, std::size_t items = 1);
+      List& insert(std::size_t at, const T& item);
+      T pop();
       bool contains(const T& item) const;
       std::size_t size() const;
+      long indexOf(const T& item) const;
+      bool empty() const;
+      
+      T* begin();
+      T* end();
 
     private:
       T* data = nullptr;
@@ -38,7 +45,6 @@ namespace clib {
       void reserve(std::size_t space);
       bool indexInBounds(std::size_t index) const;
       bool full() const;
-      bool empty() const;
 
       //TODO abstract memory management
       /**Destroys all objects in data and sets count to 0. Doesn't delete data*/
@@ -125,11 +131,13 @@ namespace clib {
   }
 
   template<typename T>
-  void List<T>::add(const T& item) {
+  List<T>& List<T>::add(const T& item) {
     if(full()) expand();
 
     new (data + count) T(item);
     count ++; 
+
+    return *this;
   }
 
   //TODO Try/catch and implement rollback
@@ -159,6 +167,7 @@ namespace clib {
 
     for(std::size_t i = 0; i < l.count; i ++) {
       new (data + i) T(l.data[i]);
+      count ++;
     }
     return *this;
   }
@@ -175,15 +184,50 @@ namespace clib {
 
   template<typename T>
   List<T>& List<T>::remove(std::size_t st, std::size_t items) {
-    if(st >= count || items > count - st) return *this;
+    if(st >= count || items == 0 || items > count - st) return *this;
     
-    for(std::size_t i = 0; i < count - st - items; i ++) {
-      T temp = std::move(data[st + i]);
-      data[st + i] = std::move(data[st + items + i]);
-      data[st + items + i] = std::move(temp);
+    for(std::size_t i = st; i < count - items; i ++) {
+      data[i] = std::move(data[items + i]);
     }
+
     clear_data(count - items);
     return *this;
+  }
+
+  template<typename T>
+  List<T>& List<T>::insert(std::size_t at, const T& item) { 
+    if(at == count) return add(item);
+
+    if(!indexInBounds(at)) throw std::out_of_range("insert: index out of bounds");
+
+    if(full()) expand();
+    
+    for(std::size_t i = count; i > at; i --) {
+      data[i] = std::move(data[i-1]);
+    }
+    
+    new (data + at) T(item);
+    count ++;
+
+    return *this;
+  }
+
+  template<typename T>
+    T List<T>::pop() {
+      T temp = std::move(data[count - 1]);
+      clear_data(count - 1);
+
+      return temp;
+    }
+
+  template<typename T>
+  long List<T>::indexOf(const T& item) const {
+    for(std::size_t i = 0; i < count; i ++) {
+      if(data[i] == item) {
+        return i;
+      }
+    }
+    return -1;
   }
 
   template<typename T>
@@ -248,5 +292,14 @@ namespace clib {
   bool List<T>::empty() const {
     return count == 0;
   }
+  template<typename T>
+  T* List<T>::begin() {
+    return data;
+  }
+  template<typename T>
+  T* List<T>::end() {
+    return data + count;
+  }
+
 }
 
